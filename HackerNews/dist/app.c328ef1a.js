@@ -118,22 +118,40 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"app.js":[function(require,module,exports) {
+var container = document.getElementById('root');
 var ajax = new XMLHttpRequest();
-var RequstType = 'GET';
+var content = document.createElement('div');
 var NEW_URL = 'https://api.hnpwa.com/v0/news/1.json';
-ajax.open(RequstType, NEW_URL, false);
+var CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
+ajax.open('GET', NEW_URL, false);
 ajax.send();
 console.log(ajax.response);
 var newFeed = JSON.parse(ajax.response);
 var ul = document.createElement('ul');
+window.addEventListener('hashchange', function () {
+  console.log(location.hash);
+  var id = location.hash.substr(1);
+  ajax.open('GET', CONTENT_URL.replace('@id', id), false);
+  ajax.send();
+  var title = document.createElement('h1');
+  var newContent = JSON.parse(ajax.response);
+  console.log(newContent);
+  title.innerHTML = newContent.title;
+  content.appendChild(title);
+});
 
 for (var i = 0; i < 10; i++) {
   var li = document.createElement('li');
-  li.innerHTML = newFeed[i].title;
+  var a = document.createElement('a');
+  a.href = "#".concat(newFeed[i].id);
+  a.innerHTML = "".concat(newFeed[i].title, " (").concat(newFeed[i].comments_count, ")"); // a.addEventListener('click', function() {});    
+
+  li.appendChild(a);
   ul.appendChild(li);
 }
 
-document.getElementById('root').appendChild(ul); // document.getElementById('root').innerHTML = `<ul>
+container.appendChild(ul);
+container.appendChild(content); // document.getElementById('root').innerHTML = `<ul>
 //     <li>${newFeed[0].title}</li>
 //     <li></li>
 //     <li></li>
@@ -166,7 +184,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50925" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49548" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
