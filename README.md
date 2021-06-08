@@ -1,0 +1,3 @@
+parcel index.html
+
+global
