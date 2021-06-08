@@ -2,4 +2,4 @@ parcel index.html
 
 global
 
-test
+test2
