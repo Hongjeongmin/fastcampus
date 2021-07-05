@@ -1,11 +1,23 @@
 import {Store} from './store.js';
 import {AppView} from './page/index.js';
-import {App} from './core/app.js';
+import {ImageView} from './components/ImageView.js';
+import {Loading} from './components/Loading.js';
 
 const store = new Store();
-const appView = new AppView('app', store);
+const imageView = new ImageView();
+const loding = new Loading();
 
-const app = new App(store, appView);
+const appView = new AppView('app', store, function (node) {
+    if(node.type === 'DIRECTORY'){
+        this.store.pushRouters(node.name);
+        this.store.deeps.push(this.nodes);
+        this.render(node.id);
+    }else {
+        imageView.setImage(node.filePath);
+        imageView.onState();
+    }
+},loding);
 
 // init
-app.defaultInit();
+store.pushRouters('root');
+appView.render('');

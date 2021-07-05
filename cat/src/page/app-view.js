@@ -12,9 +12,11 @@ const template = `
 `;
 
 export default class AppView extends View{
-    constructor(containerId, store) {
+    constructor(containerId, store, onClick, loading) {
         super(containerId, store, template);
         this.nodes;
+        this.onClick = onClick;
+        this.loading = loading;
     }
 
     createNodeHTML() {
@@ -51,14 +53,6 @@ export default class AppView extends View{
         return list.join('');
     }
 
-    onClick(node) {
-        if(node.type === 'DIRECTORY'){
-            this.store.pushRouters(node.name);
-            this.store.deeps.push(this.nodes);
-            this.render(node.id);
-        }
-    }
-
     onBackClick() {
         this.store.popRouters();
         this.nodes = this.store.nodes = this.store.popDeeps();
@@ -80,8 +74,8 @@ export default class AppView extends View{
     }
 
     render(id) {
-        console.log("id: " +id);
         const api = new NodeApi(NODE_URL.replace('@id', id));
+        this.loading.setState(true);
         api.getData((data) => {
             this.nodes = this.store.nodes = data;
             this.setTemplateData('routers', this.createRouterHTML());
@@ -98,6 +92,7 @@ export default class AppView extends View{
                     }        
                 });
             });
+            this.loading.setState(false);
         });
     }
 

@@ -214,6 +214,10 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -229,13 +233,32 @@ var Api = /*#__PURE__*/function () {
 
   _createClass(Api, [{
     key: "getRequest",
-    value: function getRequest(cb) {
-      fetch(this.url).then(function (response) {
-        return response.json();
-      }).then(cb).catch(function (e) {
-        console.error('데이타를 불러오지 못했습니다.' + e);
-      });
-    }
+    value: function () {
+      var _getRequest = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(cb) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                fetch(this.url).then(function (response) {
+                  return response.json();
+                }).then(cb).catch(function (e) {
+                  console.error('데이타를 불러오지 못했습니다.' + e);
+                });
+
+              case 1:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function getRequest(_x) {
+        return _getRequest.apply(this, arguments);
+      }
+
+      return getRequest;
+    }()
   }]);
 
   return Api;
@@ -377,13 +400,15 @@ var AppView = /*#__PURE__*/function (_View) {
 
   var _super = _createSuper(AppView);
 
-  function AppView(containerId, store) {
+  function AppView(containerId, store, onClick, loading) {
     var _this;
 
     _classCallCheck(this, AppView);
 
     _this = _super.call(this, containerId, store, template);
     _this.nodes;
+    _this.onClick = onClick;
+    _this.loading = loading;
     return _this;
   }
 
@@ -409,15 +434,6 @@ var AppView = /*#__PURE__*/function (_View) {
         list.push("\n                <div>".concat(router, "</div>\n            "));
       });
       return list.join('');
-    }
-  }, {
-    key: "onClick",
-    value: function onClick(node) {
-      if (node.type === 'DIRECTORY') {
-        this.store.pushRouters(node.name);
-        this.store.deeps.push(this.nodes);
-        this.render(node.id);
-      }
     }
   }, {
     key: "onBackClick",
@@ -447,8 +463,8 @@ var AppView = /*#__PURE__*/function (_View) {
     value: function render(id) {
       var _this3 = this;
 
-      console.log("id: " + id);
       var api = new _api.NodeApi(_config.NODE_URL.replace('@id', id));
+      this.loading.setState(true);
       api.getData(function (data) {
         _this3.nodes = _this3.store.nodes = data;
 
@@ -470,6 +486,8 @@ var AppView = /*#__PURE__*/function (_View) {
             }
           });
         });
+
+        _this3.loading.setState(false);
       });
     }
   }]);
@@ -494,13 +512,13 @@ Object.defineProperty(exports, "AppView", {
 var _appView = _interopRequireDefault(require("./app-view.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./app-view.js":"src/page/app-view.js"}],"src/core/app.js":[function(require,module,exports) {
+},{"./app-view.js":"src/page/app-view.js"}],"src/components/ImageView.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.App = void 0;
+exports.ImageView = void 0;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -508,26 +526,92 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var App = /*#__PURE__*/function () {
-  function App(store, appView) {
-    _classCallCheck(this, App);
+var ImageView = /*#__PURE__*/function () {
+  function ImageView() {
+    var _this = this;
 
-    this.store = store;
-    this.appView = appView;
+    var src = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : './test.png';
+
+    _classCallCheck(this, ImageView);
+
+    this.state = false;
+    this.src = src;
+    this.target = document.createElement('div');
+    this.target.className = 'Modal ImageViewer';
+    this.target.addEventListener('click', function (e) {
+      _this.onState();
+    });
+    document.getElementById('body').appendChild(this.target);
+    this.render();
   }
 
-  _createClass(App, [{
-    key: "defaultInit",
-    value: function defaultInit() {
-      this.store.pushRouters('root');
-      this.appView.render('');
+  _createClass(ImageView, [{
+    key: "setImage",
+    value: function setImage(src) {
+      this.src = src;
+    }
+  }, {
+    key: "onState",
+    value: function onState() {
+      this.state = this.state ? false : true;
+      this.render();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      this.target.innerHTML = "<div class=\"content\"><img src=\"".concat(this.src, "\"></div>");
+      this.target.style.display = this.state ? 'block' : 'none';
     }
   }]);
 
-  return App;
+  return ImageView;
 }();
 
-exports.App = App;
+exports.ImageView = ImageView;
+},{}],"src/components/Loading.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Loading = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var Loading = /*#__PURE__*/function () {
+  function Loading() {
+    _classCallCheck(this, Loading);
+
+    this.state = false;
+    this.$target = document.createElement('div');
+    this.$target.className = "Loading Modal";
+    document.getElementById('body').appendChild(this.$target);
+    this.render();
+  }
+
+  _createClass(Loading, [{
+    key: "setState",
+    value: function setState(nextState) {
+      console.log(nextState);
+      this.state = nextState;
+      this.render();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      this.$target.style.display = this.state ? 'block' : 'none';
+      this.$target.innerHTML = "<div class=\"content\"><img src=\"./assets/nyan-cat.gif\"></div>";
+    }
+  }]);
+
+  return Loading;
+}();
+
+exports.Loading = Loading;
 },{}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
@@ -535,14 +619,27 @@ var _store = require("./store.js");
 
 var _index = require("./page/index.js");
 
-var _app = require("./core/app.js");
+var _ImageView = require("./components/ImageView.js");
+
+var _Loading = require("./components/Loading.js");
 
 var store = new _store.Store();
-var appView = new _index.AppView('app', store);
-var app = new _app.App(store, appView); // init
+var imageView = new _ImageView.ImageView();
+var loding = new _Loading.Loading();
+var appView = new _index.AppView('app', store, function (node) {
+  if (node.type === 'DIRECTORY') {
+    this.store.pushRouters(node.name);
+    this.store.deeps.push(this.nodes);
+    this.render(node.id);
+  } else {
+    imageView.setImage(node.filePath);
+    imageView.onState();
+  }
+}, loding); // init
 
-app.defaultInit();
-},{"./store.js":"src/store.js","./page/index.js":"src/page/index.js","./core/app.js":"src/core/app.js"}],"../../../../.nvm/versions/node/v16.3.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+store.pushRouters('root');
+appView.render('');
+},{"./store.js":"src/store.js","./page/index.js":"src/page/index.js","./components/ImageView.js":"src/components/ImageView.js","./components/Loading.js":"src/components/Loading.js"}],"../../../../.nvm/versions/node/v16.3.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -570,7 +667,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55380" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61386" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

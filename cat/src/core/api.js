@@ -3,7 +3,7 @@ export class Api {
         this.url = url;
     }
 
-    getRequest(cb) {
+    async getRequest(cb) {
         fetch(this.url)
             .then(response => response.json())
             .then(cb)
