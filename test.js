@@ -1,14 +1,9 @@
-function create2DArray(rows, columns) {
-    var arr = new Array(rows);
-    for (var i = 0; i < rows; i++) {
-        arr[i] = new Array(columns);
-        for(var j =0; j<columns; j++){
-            arr[i][j] = [];
-        }
-    }
-    return arr;
+function getData(callbackFunc) {
+	$.get('https://domain.com/products/1', function(response) {
+		callbackFunc(response); // 서버에서 받은 데이터 response를 callbackFunc() 함수에 넘겨줌
+	});
 }
 
-// arr[5][2]
-var arr = create2DArray(10, 10);
-
+getData(function(tableData) {
+	console.log(tableData); // $.get()의 response 값이 tableData에 전달됨
+});

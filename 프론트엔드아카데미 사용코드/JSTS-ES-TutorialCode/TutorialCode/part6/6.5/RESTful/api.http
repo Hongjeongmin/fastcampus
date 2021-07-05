@@ -1,0 +1,2 @@
+###
+GET https://en.wikipedia.org/wiki/Clean_URL HTTP/1.1
